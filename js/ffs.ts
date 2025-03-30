@@ -24,8 +24,8 @@ function normalize(query: Query): Query {
         }
       ];
     } else if (rem_query.logical === "and") {
-      const c1 = normalize_recursive(rem_query.queries[0]);
-      const c2 = normalize_recursive(rem_query.queries[1]);
+      var c1 = normalize_recursive(rem_query.queries[0]);
+      var c2 = normalize_recursive(rem_query.queries[1]);
       // return cross product of c1 and c2
       return c1.flatMap((c1i) =>
         c2.map((c2j) => ({
@@ -34,8 +34,8 @@ function normalize(query: Query): Query {
         }))
       );
     } else if (rem_query.logical === "or") {
-      const c1 = normalize_recursive(rem_query.queries[0]);
-      const c2 = normalize_recursive(rem_query.queries[1]);
+      var c1 = normalize_recursive(rem_query.queries[0]);
+      var c2 = normalize_recursive(rem_query.queries[1]);
       return [].concat(c1, c2);
     } else {
       alert(`unsupported boolean operator: ${rem_query.logical}`);
@@ -70,7 +70,7 @@ export function ffs_construct_query(
     return callback("ffs parse error");
   }
 
-  const query_parts = [];
+  var query_parts = [];
   let bounds_part;
 
   function add_comment(string) {
@@ -123,7 +123,7 @@ export function ffs_construct_query(
         .replace(/\n/g, "\\n"); // also escape newlines an tabs for better readability of the query
     }
     let key = esc(condition.key);
-    const val = esc(condition.val);
+    var val = esc(condition.val);
     // convert substring searches into matching regexp ones
     if (condition.query === "substr") {
       condition.query = "like";
@@ -269,8 +269,8 @@ export function ffs_construct_query(
   ffs.query = normalize(ffs.query);
 
   let freeForm = false;
-  for (const and_query of ffs.query.queries) {
-    for (const cond_query of and_query.queries) {
+  for (var and_query of ffs.query.queries) {
+    for (var cond_query of and_query.queries) {
       if (cond_query.query === "free form") {
         freeForm = true;
         break;
@@ -282,14 +282,14 @@ export function ffs_construct_query(
   (freeForm ? ffs_free : (x) => x(null))((freeFormQuery) => {
     add_comment("// gather results");
     query_parts.push("(");
-    for (const and_query of ffs.query.queries) {
+    for (var and_query of ffs.query.queries) {
       let types = ["node", "way", "relation"];
       let clauses = [];
       let clauses_str = [];
-      for (const cond_query of and_query.queries) {
+      for (var cond_query of and_query.queries) {
         // todo: looks like some code duplication here could be reduced by refactoring
         if (cond_query.query === "free form") {
-          const ffs_clause = freeFormQuery.get_query_clause(cond_query);
+          var ffs_clause = freeFormQuery.get_query_clause(cond_query);
           if (ffs_clause === false) return callback("unknown ffs string");
           // restrict possible data types
           types = types.filter((t) => ffs_clause.types.indexOf(t) != -1);
@@ -306,7 +306,7 @@ export function ffs_construct_query(
         } else {
           // add another query clause
           clauses_str.push(get_query_clause_str(cond_query));
-          const clause = get_query_clause(cond_query);
+          var clause = get_query_clause(cond_query);
           if (clause === false) return false;
           clauses.push(clause);
         }
@@ -317,9 +317,9 @@ export function ffs_construct_query(
       if (types.length === 3) {
         types = ["nwr"];
       }
-      for (const t of types) {
+      for (var t of types) {
         let buffer = `  ${t}`;
-        for (const c of clauses) buffer += c;
+        for (var c of clauses) buffer += c;
         if (bounds_part) buffer += bounds_part;
         buffer += ";";
         query_parts.push(buffer);
@@ -327,7 +327,7 @@ export function ffs_construct_query(
     }
 
     if (query_parts.indexOf("(") === query_parts.length - 2) {
-      const idx = query_parts.indexOf("(");
+      var idx = query_parts.indexOf("(");
       query_parts.splice(idx, 1);
       query_parts[idx] = query_parts[idx].substr(2);
     } else {
@@ -368,10 +368,10 @@ export function ffs_repair_search(search: string, callback) {
     });
     function validateQuery(cond_query) {
       if (cond_query.query === "free form") {
-        const ffs_clause = freeFormQuery.get_query_clause(cond_query);
+        var ffs_clause = freeFormQuery.get_query_clause(cond_query);
         if (ffs_clause === false) {
           // try to find suggestions for occasional typos
-          const fuzzy = freeFormQuery.fuzzy_search(cond_query);
+          var fuzzy = freeFormQuery.fuzzy_search(cond_query);
           let free_regex = null;
           try {
             free_regex = new RegExp(`['"]?${escRegexp(cond_query.free)}['"]?`);
@@ -379,7 +379,7 @@ export function ffs_repair_search(search: string, callback) {
           if (fuzzy && search.match(free_regex)) {
             search_parts = search_parts.concat(search.split(free_regex));
             search = search_parts.pop();
-            const replacement = quotes(fuzzy);
+            var replacement = quotes(fuzzy);
             search_parts.push(replacement);
             repaired = true;
           }
